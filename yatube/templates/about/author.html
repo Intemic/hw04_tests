@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Об авторе проекта{% endblock %}
+{% block content %}
+  <h1>Привет, я автор</h1>
+  {% load static %}
+  <div class="aboutus-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3 col-sm-6 col-xs-12">
+          <div class="aboutus">
+            <p class="aboutus-text">Меня зовут Антон, с моими работами
+              вы можете ознакомится здесь:
+              <a href="https://github.com/Intemic">
+                https://github.com/Intemic
+              </a>
+            </p>
+
+            <p class="aboutus-text">В мир программирования я пришел случайно,
+              все началось с того что при обучении по професси не связанной
+              с программированием, мне не удалось сдать зачет по языку Pascal,
+              списанную работу не приняли, пришлось изучать и делать работу
+              самому, потом по мере изучения, втянулся и начал нравиться
+              процесс программирования. В изучении python мне помогает
+              компаньон - горилла )). Он на фотографии. </p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-12">
+          <div class="aboutus-banner">
+            <img alt="" src="{% static 'img/gorilla.jpg' %}">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %} 
