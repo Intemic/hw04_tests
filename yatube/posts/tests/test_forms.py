@@ -1,7 +1,7 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Post, User
+from posts.models import Post, Group, User
 
 
 class TestForm(TestCase):
@@ -15,12 +15,19 @@ class TestForm(TestCase):
             text='Просто пост',
             author=cls.author_user,
         )
+        cls.group = Group.objects.create(
+            title='Group1',
+            slug='group1',
+            description='Group1'
+        )
 
     def test_create_post(self):
         """Проверка корректности создания поста."""
         count_post = Post.objects.count()
+        post_text = 'Новый пост'
         form_data = {
-            'text': 'Новый пост',
+            'text': post_text,
+            'group': TestForm.group.pk
         }
         response = TestForm.author_client.post(
             reverse('posts:post_create'),
@@ -32,6 +39,9 @@ class TestForm(TestCase):
             'posts:profile',
             kwargs={'username': TestForm.author_user.username})
         )
+        post: Post = Post.objects.all()[0]
+        self.assertEqual(post.text, post_text)
+        self.assertEqual(post.group, TestForm.group) 
 
     def test_edit_post(self):
         """Проверка корректной работы измененеия поста."""

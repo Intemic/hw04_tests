@@ -59,7 +59,7 @@ class TestView(TestCase):
             group: Group,
             username: str,
             post_id: int = 1) -> list:
-        """Формируем перечень url их шааблонов и контекста."""
+        """Формируем перечень url их шаблонов и контекста."""
         return (
             (
                 reverse('posts:index'),
