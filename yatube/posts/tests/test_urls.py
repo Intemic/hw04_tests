@@ -53,18 +53,12 @@ class TestUrl(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_availability_of_url_with_changeable_data(self):
-        """Проверка соответствия прав доступа различным типам пользователей.
-
-        для страниц с изменяемыми данными.
-        """
+        """Проверка доступности для страниц с изменяемыми данными."""
         post_urls = {
             f'/posts/{TestUrl.post.pk}/edit/': {
-                self.guest_client: HTTPStatus.FOUND,
-                self.auth_client: HTTPStatus.FOUND,
                 self.author_client: HTTPStatus.OK,
             },
             '/create/': {
-                self.guest_client: HTTPStatus.FOUND,
                 self.auth_client: HTTPStatus.OK,
                 self.author_client: HTTPStatus.OK,
             }

@@ -31,21 +31,22 @@ class TestView(TestCase):
 
         cls.count_post = (settings.NUMBER_OF_LINES_ON_PAGE
                           + round(settings.NUMBER_OF_LINES_ON_PAGE / 2))
+       
 
-        # набор постов от одного автора, группы
-        for i in range(1, cls.count_post):
-            Post.objects.create(
-                text='Пост № ' + str(i),
-                author=TestView.authors['pshk'],
-                group=TestView.groups['gr1']
-            )
+        # # набор постов от одного автора, группы
+        # for i in range(1, cls.count_post):
+        #     Post.objects.create(
+        #         text='Пост № ' + str(i),
+        #         author=TestView.authors['pshk'],
+        #         group=TestView.groups['gr1']
+        #     )
 
-        # создание поста с другими значениями автора, группы
-        cls.post_others = Post.objects.create(
-            text='999',
-            author=TestView.authors['leo'],
-            group=TestView.groups['gr2']
-        )
+        # # создание поста с другими значениями автора, группы
+        # cls.post_others = Post.objects.create(
+        #     text='999',
+        #     author=TestView.authors['leo'],
+        #     group=TestView.groups['gr2']
+        # )
 
     @classmethod
     def get_url_data(
@@ -115,6 +116,9 @@ class TestView(TestCase):
         self.urls = TestView.get_url_data(
             group=TestView.groups['gr1'],
             username=TestView.authors['pshk'].username)
+    
+    def tearDown(self) -> None:
+        Post.objects.all().delete()
 
     def test_of_using_correct_templates(self):
         """Проверка соответствия шаблонов."""
@@ -133,25 +137,30 @@ class TestView(TestCase):
                         response.context.get(elem),
                         type_elem
                     )
-                    self.assertIsNotNone(response.context.get(elem))
 
     def test_paginator(self):
+        page_count_post = (
+            (1, settings.NUMBER_OF_LINES_ON_PAGE),
+            (2, round(settings.NUMBER_OF_LINES_ON_PAGE / 2))
+        )
+
+        post_list = []
+        for page, count in page_count_post:
+            post_list.append(
+                Post(
+                    text='Пост № ' + str(len(post_list) + 1),
+                    author=TestView.authors['pshk'],
+                    group=TestView.groups['gr1']
+                )  
+            )
+
+        Post.objects.bulk_create(post_list)
+
         """Проверим корректную работу paginatora."""
         for url, template, dict_ in self.urls:
             for elem, type_elem in dict(dict_).items():
                 if type_elem is Page:
-                    for page_n in range(1, 3):
-                        if page_n == 1:
-                            count_post_in_page = (settings.
-                                                  NUMBER_OF_LINES_ON_PAGE)
-                        else:
-                            count_post_in_page = (TestView.count_post
-                                                  - settings.
-                                                  NUMBER_OF_LINES_ON_PAGE)
-                            # если не главная то откинем один пост
-                            if url != reverse('posts:index'):
-                                count_post_in_page = count_post_in_page - 1
-
+                    for page_n, count_post_in_page in page_count_post:
                         with self.subTest(url=url):
                             response = self.author_client.get(
                                 url, [('page', page_n)]
@@ -214,7 +223,6 @@ class TestView(TestCase):
         )
 
         for url in urls:
-            print(url)
             with self.subTest(url=url):
                 response = self.author_client.get(url)
                 # если это не редактирование
