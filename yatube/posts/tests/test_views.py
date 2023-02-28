@@ -123,12 +123,12 @@ class TestView(TestCase):
             text='Пост 1',
             author=self.user_pshk,
             group=self.group1
-        )        
+        )
 
         # self.urls = TestView.get_url_data(
         #     group=TestView.groups['gr1'],
         #     username=TestView.authors['pshk'].username)
-    
+
     def tearDown(self) -> None:
         User.objects.all().delete()
         Group.objects.all().delete()
@@ -162,6 +162,7 @@ class TestView(TestCase):
             'posts:group_list',
             kwargs={'slug': group2.slug}
         )
+    
 
         # проверим что пост не попал на другую страницу
         response = self.author_client.get(url)
@@ -253,6 +254,7 @@ class TestView(TestCase):
         self.assertEqual(post.author.username, self.post.author.username)
 
     def test_post_edit_page(self):
+        """Проверка страницы редактирования(контекст, шаблон, данные)."""
         url = reverse(
             'posts:post_edit',
             kwargs={'post_id': self.post.pk}
