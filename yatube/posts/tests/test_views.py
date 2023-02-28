@@ -29,12 +29,6 @@ class TestView(TestCase):
             )
         }
 
-        cls.author_client = Client()
-        cls.author_client.force_login(TestView.authors['pshk'])
-
-        cls.author_client_leo = Client()
-        cls.author_client_leo.force_login(TestView.authors['leo'])
-
         cls.count_post = (settings.NUMBER_OF_LINES_ON_PAGE
                           + round(settings.NUMBER_OF_LINES_ON_PAGE / 2))
 
@@ -111,7 +105,13 @@ class TestView(TestCase):
             )
         )
 
-    def setUp(self) -> None:
+    def setUp(self):
+        self.author_client = Client()
+        self.author_client.force_login(TestView.authors['pshk'])
+
+        self.author_client_leo = Client()
+        self.author_client_leo.force_login(TestView.authors['leo'])
+
         self.urls = TestView.get_url_data(
             group=TestView.groups['gr1'],
             username=TestView.authors['pshk'].username)
@@ -120,14 +120,14 @@ class TestView(TestCase):
         """Проверка соответствия шаблонов."""
         for url, template, dict_ in self.urls:
             with self.subTest(url=url):
-                response = TestView.author_client.get(url)
+                response = self.author_client.get(url)
                 self.assertTemplateUsed(response, template)
 
     def test_context_element_name_and_type(self):
         """Проверим на соответствие контекста(тип, наличие данных)."""
         for url, template, dict_ in self.urls:
             with self.subTest(url=url):
-                response = TestView.author_client.get(url)
+                response = self.author_client.get(url)
                 for elem, type_elem in dict(dict_).items():
                     self.assertIsInstance(
                         response.context.get(elem),
@@ -153,7 +153,7 @@ class TestView(TestCase):
                                 count_post_in_page = count_post_in_page - 1
 
                         with self.subTest(url=url):
-                            response = TestView.author_client.get(
+                            response = self.author_client.get(
                                 url, [('page', page_n)]
                             )
                             self.assertEqual(
@@ -171,13 +171,13 @@ class TestView(TestCase):
             for elem, type_elem in dict(dict_).items():
                 if type_elem is Page:
                     with self.subTest(url=url):
-                        response = TestView.author_client.get(url)
+                        response = self.author_client.get(url)
                         page = response.context.get(elem)
                         self.assertIn(self.post_others, page.object_list)
 
     def test_correct_context_in_group_list(self):
         """Проверка раздела group_list на корретное содержимое."""
-        response = TestView.author_client.get(
+        response = self.author_client.get(
             reverse(
                 'posts:group_list',
                 kwargs={'slug': TestView.groups['gr2'].slug}
@@ -189,7 +189,7 @@ class TestView(TestCase):
 
     def test_correct_context_in_profile(self):
         """Проверка раздела profile на корретное содержимое."""
-        response = TestView.author_client.get(
+        response = self.author_client.get(
             reverse(
                 'posts:profile',
                 kwargs={'username': TestView.authors['leo']}
@@ -216,7 +216,7 @@ class TestView(TestCase):
         for url in urls:
             print(url)
             with self.subTest(url=url):
-                response = TestView.author_client.get(url)
+                response = self.author_client.get(url)
                 # если это не редактирование
                 if url.find('edit') == -1:
                     obj = response.context.get('post')

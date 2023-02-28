@@ -19,7 +19,7 @@ class TestUrl(TestCase):
         )
         cls.post = Post.objects.create(
             author=cls.author,
-            text='Тестовый пост про чтот то',
+            text='Тестовый пост про что то',
             group=cls.group
         )
 
