@@ -46,7 +46,6 @@ class Post(models.Model):
         help_text='Выберите изображение для загрузки'
     )
 
-
     class Meta:
         ordering = ['-pub_date']
 

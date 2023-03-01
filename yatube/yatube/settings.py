@@ -112,5 +112,4 @@ NUMBER_OF_LINES_ON_PAGE = 10
 
 MEDIA_URL = '/media/'
 
-
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
