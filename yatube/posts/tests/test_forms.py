@@ -13,7 +13,7 @@ class TestForm(TestCase):
     def setUp(self) -> None:
         self.author_client = Client()
         self.author_client.force_login(TestForm.author_user)
-        
+
         self.group = Group.objects.create(
             title='Group1',
             slug='group1',
@@ -43,7 +43,7 @@ class TestForm(TestCase):
         )
         post: Post = Post.objects.all()[0]
         self.assertEqual(post.text, form_data['text'])
-        self.assertEqual(post.group, Group.objects.get(pk=form_data['group'])) 
+        self.assertEqual(post.group, Group.objects.get(pk=form_data['group']))
 
     def test_edit_post(self):
         """Проверка корректной работы измененеия поста."""
@@ -71,4 +71,3 @@ class TestForm(TestCase):
             'posts:post_detail',
             kwargs={'post_id': post.pk})
         )
-
