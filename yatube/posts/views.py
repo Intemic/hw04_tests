@@ -62,6 +62,7 @@ def post_create(request: HttpRequest) -> HttpResponse:
     return render(request, 'posts/create_post.html', context)
 
 
+
 @login_required
 def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
     post = get_object_or_404(Post, pk=post_id)
