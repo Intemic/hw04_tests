@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% block title %}
   {% if is_edit %} 
@@ -20,7 +21,7 @@
         <div class="card-body">    
           {% include 'includes/errors.html' %}    
           
-          <form method="post">
+          <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
               {% include 'includes/form_out.html' %}
