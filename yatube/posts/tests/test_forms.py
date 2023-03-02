@@ -20,10 +20,6 @@ class TestForm(TestCase):
             description='Group1'
         )
 
-    def tearDown(self) -> None:
-        Group.objects.all().delete()
-        Post.objects.all().delete()
-
     def test_create_post(self):
         """Проверка корректности создания поста."""
         count_post = Post.objects.count()

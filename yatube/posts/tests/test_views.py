@@ -10,6 +10,7 @@ from posts.models import Group, Post, User
 
 class TestView(TestCase):
     def compare_posts(self, post: Post, post_ref: Post) -> None:
+        self.assertIsInstance(post, Post)
         self.assertEqual(post.text, post_ref.text)
         self.assertEqual(post.group, post_ref.group)
         self.assertEqual(post.author, post_ref.author)
