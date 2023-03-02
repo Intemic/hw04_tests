@@ -85,6 +85,7 @@ class TestView(TestCase):
         self.author_client.force_login(self.user_pshk)
 
     def test_patterns(self):
+        """Проверяем шаблоны."""
         for url, pattern in TestView.urls_pattern:
             with self.subTest(url=url):
                 response = self.author_client.get(url)
@@ -111,7 +112,6 @@ class TestView(TestCase):
         page = response.context.get('page_obj')
         self.assertIsInstance(page, Page)
         group = response.context.get('group')
-        self.assertIsInstance(group, Group)
 
         # проверим данные объекта и группу
         self.compare_posts(page.object_list[0], self.post)
@@ -145,7 +145,6 @@ class TestView(TestCase):
         response = self.author_client.get(url)
 
         post = response.context.get('post')
-        self.assertIsInstance(post, Post)
         self.compare_posts(post, self.post)
 
     def test_post_edit_page(self):

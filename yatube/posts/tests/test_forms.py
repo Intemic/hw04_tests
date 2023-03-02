@@ -1,14 +1,54 @@
-from django.test import Client, TestCase
+import shutil
+import tempfile
+
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.models import Post, Group, User
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class TestForm(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.author_user = User.objects.create_user(username='leo')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
+    def create_post_with_image(self) -> Post:
+        small_gif = (            
+             b'\x47\x49\x46\x38\x39\x61\x02\x00'
+             b'\x01\x00\x80\x00\x00\x00\x00\x00'
+             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+             b'\x0A\x00\x3B'
+        )
+        
+        upload_image = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
+
+        group = Group.objects.create(
+            title='Group1',
+            slug='group1',
+            description='Group1'
+        )
+        return Post.objects.create(
+            text='Пост 1',
+            author=TestForm.author_user,
+            group=group,
+            image=upload_image
+        )
 
     def setUp(self) -> None:
         self.author_client = Client()
@@ -67,3 +107,49 @@ class TestForm(TestCase):
             'posts:post_detail',
             kwargs={'post_id': post.pk})
         )
+
+    def test_display_image_on_main_page(self):
+        # так как у нас проверяется одна и та же функциональность
+        # попробуем так, вроде атомарность не нарушаем 
+        post = self.create_post_with_image()
+        print(post)
+        # urls = (
+        #     (
+        #         reverse('posts:index'),
+        #         'page_obj',
+        #     ),
+
+        #     (
+        #         reverse(
+        #             'posts:group_list',
+        #             kwargs={'slug': post.group.slug}
+        #         ),
+        #         'page_obj',
+        #     ),
+
+        #     (
+        #         reverse(
+        #             'posts:profile',
+        #             kwargs={'username': TestForm.author_user.username}
+        #         ),
+        #         'page_obj',
+        #     ),
+
+        #     (
+        #         reverse(
+        #             'posts:post_detail',
+        #             kwargs={'post_id': post.pk}
+        #         ),
+        #         'post',
+        #     ),
+        # )
+
+        # for url, elem in urls:
+        #     with self.subTest(url=url):
+        #         response = self.author_client.get(url)
+        #         obj = response.content.get(elem)
+        #         if elem == 'page_obj':
+        #             obj = obj.object_list[0]
+        #         #print(obj) 
+
+
