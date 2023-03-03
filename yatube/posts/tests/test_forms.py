@@ -3,6 +3,7 @@ import tempfile
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.paginator import Page
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -38,15 +39,10 @@ class TestForm(TestCase):
             content_type='image/gif'
         )
 
-        group = Group.objects.create(
-            title='Group1',
-            slug='group1',
-            description='Group1'
-        )
         return Post.objects.create(
             text='Пост 1',
             author=TestForm.author_user,
-            group=group,
+            group=self.group,
             image=upload_image
         )
 
@@ -112,44 +108,43 @@ class TestForm(TestCase):
         # так как у нас проверяется одна и та же функциональность
         # попробуем так, вроде атомарность не нарушаем 
         post = self.create_post_with_image()
-        print(post)
-        # urls = (
-        #     (
-        #         reverse('posts:index'),
-        #         'page_obj',
-        #     ),
+        urls = (
+            (
+                reverse('posts:index'),
+                'page_obj',
+            ),
 
-        #     (
-        #         reverse(
-        #             'posts:group_list',
-        #             kwargs={'slug': post.group.slug}
-        #         ),
-        #         'page_obj',
-        #     ),
+            (
+                reverse(
+                    'posts:group_list',
+                    kwargs={'slug': post.group.slug}
+                ),
+                'page_obj',
+            ),
 
-        #     (
-        #         reverse(
-        #             'posts:profile',
-        #             kwargs={'username': TestForm.author_user.username}
-        #         ),
-        #         'page_obj',
-        #     ),
+            (
+                reverse(
+                    'posts:profile',
+                    kwargs={'username': TestForm.author_user.username}
+                ),
+                'page_obj',
+            ),
 
-        #     (
-        #         reverse(
-        #             'posts:post_detail',
-        #             kwargs={'post_id': post.pk}
-        #         ),
-        #         'post',
-        #     ),
-        # )
+            (
+                reverse(
+                    'posts:post_detail',
+                    kwargs={'post_id': post.pk}
+                ),
+                'post',
+            ),
+        )
 
-        # for url, elem in urls:
-        #     with self.subTest(url=url):
-        #         response = self.author_client.get(url)
-        #         obj = response.content.get(elem)
-        #         if elem == 'page_obj':
-        #             obj = obj.object_list[0]
-        #         #print(obj) 
+        for url, elem in urls:
+            with self.subTest(url=url):
+                response = self.author_client.get(url)
+                obj = response.context.get(elem)
+                if elem == 'page_obj':
+                    obj = obj.object_list[0]
+                print(obj.image) 
 
 
