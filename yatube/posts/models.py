@@ -3,6 +3,7 @@ from django.db import models
 
 User = get_user_model()
 
+# TODO Сделать абстрактный класс для моделей с датами
 
 class Group(models.Model):
     title = models.CharField(verbose_name='Имя', max_length=200)
@@ -51,3 +52,29 @@ class Post(models.Model):
 
     def __str__(self) -> str:
         return self.text[:15]
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        verbose_name='Пост',
+        on_delete=models.CASCADE,
+        related_name='comments',
+        help_text='Пост'
+    )
+    author = models.ForeignKey(
+        User,
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
+        related_name='comments',
+        help_text='Автор комментария'
+    )
+    text = models.TextField(
+        verbose_name='Текст',
+        help_text='Текст комментария'
+    )
+    created = models.DateTimeField(
+        verbose_name='Дата комментария',
+        auto_now_add=True,
+        help_text='Дата комментария'
+    )

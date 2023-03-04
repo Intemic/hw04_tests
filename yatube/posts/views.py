@@ -2,8 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import PostForm
-from .models import Group, Post, User
+from .forms import CommentForm, PostForm
+from .models import Comment, Group, Post, User
 from .utils import get_page_obj
 
 
@@ -38,8 +38,13 @@ def profile(request: HttpRequest, username: str) -> HttpResponse:
 
 def post_detail(request: HttpRequest, post_id: int) -> HttpResponse:
     post = get_object_or_404(Post, pk=post_id)
+    form = CommentForm(request.POST or None)
+
+    comments = post.comments.all()
     context = {
         'post': post,
+        'form': form,
+        'comments': comments
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -83,3 +88,16 @@ def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
         'form': form,
     }
     return render(request, 'posts/create_post.html', context)
+
+
+@login_required
+def add_comment(request: HttpRequest, post_id: int):
+    post = get_object_or_404(Post, pk=post_id)
+
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment: Comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+        return redirect('posts:post_detail', post_id=post_id)
