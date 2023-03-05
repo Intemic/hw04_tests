@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, get_list_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
 from .forms import CommentForm, PostForm
-from .models import Comment, Group, Post, User
+from .models import Comment, Follow, Group, Post, User
 from .utils import get_page_obj
 
 
@@ -31,9 +31,26 @@ def profile(request: HttpRequest, username: str) -> HttpResponse:
     user = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(
         author=user).prefetch_related('author', 'group').all()
+
+    print('following' + '\n')   
+    for user in request.user.following.all():
+        print(user)
+
+    print('follower' + '\n')   
+    for user in request.user.follower.all():
+        print(user)
+
+
+    # if request.user.following.filter(username=username).exists():
+    #     following = True
+    # print(username, '-' 'follower: ', user.follower.all(), 'following: ', user.following.all())    
+    # print(request.user, '-' 'follower: ', request.user.follower.all(), 'following: ', request.user.following.all())    
+   
+    following = False
     context = {
         'author': user,
         'page_obj': get_page_obj(request, post_list),
+        'following': following
     }
     return render(request, 'posts/profile.html', context)
 
@@ -103,3 +120,34 @@ def add_comment(request: HttpRequest, post_id: int):
         comment.post = post
         comment.save()
         return redirect('posts:post_detail', post_id=post_id)
+
+
+@login_required
+def follow_index(request: HttpRequest):
+    author_list = get_list_or_404(User, follower=request.user)
+    post_list = Post.objects.select_related('author', 'group').filter(author)  
+    # информация о текущем пользователе доступна в переменной request.user
+    # ...
+    post_list = Post.objects.select_related('author', 'group').all()
+    context = {
+        'page_obj': get_page_obj(request, post_list),
+    }
+#    return render(request, 'posts/index.html', context)    
+#    context = {}
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request: HttpRequest, username: str):
+    # Подписаться на автора
+    author = get_object_or_404(User, username=username)
+    Follow.objects.create(user=request.user, author=author)
+    return redirect('posts:profile', username=username)
+
+
+@login_required
+def profile_unfollow(request: HttpRequest, username: str):
+    # Дизлайк, отписка
+    author = get_object_or_404(User, username=username)
+    Follow.objects.filter(user=request.user).filter(author=author).delete()
+    return redirect('posts:profile', username=username)
