@@ -22,7 +22,7 @@
           {% include 'includes/errors.html' %}    
           
           <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+            {% csrf_token %} 
             {% for field in form %}
               {% include 'includes/form_out.html' %}
             {% endfor %} 

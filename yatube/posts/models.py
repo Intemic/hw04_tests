@@ -3,7 +3,6 @@ from django.db import models
 
 User = get_user_model()
 
-# TODO Сделать абстрактный класс для моделей с датами
 
 class Group(models.Model):
     title = models.CharField(verbose_name='Имя', max_length=200)

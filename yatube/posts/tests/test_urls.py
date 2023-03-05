@@ -121,3 +121,18 @@ class TestUrl(TestCase):
             'posts:post_detail',
             kwargs={'post_id': TestUrl.post.pk}
         ))
+
+    def test_anonymous_user_cannot_comment(self):
+        """Проверяем что неавторизованный пользователь не может.
+
+        оставлять комментарии
+        """
+        url = f'/posts/{TestUrl.post.id}/comment/'
+        response = self.guest_client.post(url)
+        self.assertRedirects(response, '/auth/login/?next=' + url)
+
+    def test_custom_template_404(self):
+        """Тестируем наш шаблон 404."""
+        url = '/posts/999/'
+        response = self.guest_client.post(url)
+        self.assertTemplateUsed(response, 'core/404 page_not_found.html')

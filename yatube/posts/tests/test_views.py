@@ -13,6 +13,7 @@ from posts.models import Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class TestView(TestCase):
     @classmethod
@@ -370,11 +371,11 @@ class TestView(TestCase):
 
         post = Post.objects.create(
             text='Пост 1',
-            author=TestView.user_pshk, 
+            author=TestView.user_pshk,
             group=TestView.group1,
             image=upload_image
-        )    
-    
+        )
+
         urls = (
             (
                 reverse('posts:index'),
@@ -412,8 +413,4 @@ class TestView(TestCase):
                 obj = response.context.get(elem)
                 if elem == 'page_obj':
                     obj = obj.object_list[0]
-                self.assertEqual(obj.image.name, f'posts/{upload_image.name}') 
-
-    def test_anonymous_user_cannot_comment(self):
-        # TODO Реализовать "комментировать посты может только авторизованный пользователь"
-        pass
+                self.assertEqual(obj.image.name, f'posts/{upload_image.name}')
