@@ -2,6 +2,7 @@ import shutil
 import tempfile
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.paginator import Page
 from django.test import Client, TestCase, override_settings
@@ -9,7 +10,7 @@ from django.urls import reverse
 from django import forms
 
 from posts.forms import PostForm
-from posts.models import Group, Post, User
+from posts.models import Follow, Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -414,3 +415,82 @@ class TestView(TestCase):
                 if elem == 'page_obj':
                     obj = obj.object_list[0]
                 self.assertEqual(obj.image.name, f'posts/{upload_image.name}')
+
+    def test_authorized_user_can_subscribe_and_unsubscribe(self):
+        """Провери возможность подписки/отписки"""
+        count = Follow.objects.count()
+
+        subscribe_user = User.objects.create_user(username='subscribe')
+        subscribed_client = Client()
+        subscribed_client.force_login(subscribe_user)
+
+        # подписываемся
+        subscribed_client.post(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': TestView.user_pshk.username}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), count + 1)
+        follow: Follow = Follow.objects.all()[0]
+        self.assertEqual(follow.user, subscribe_user)
+        self.assertEqual(follow.author, TestView.user_pshk)
+
+        # отписываемся
+        subscribed_client.post(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': TestView.user_pshk.username}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), count)
+
+    def test_the_post_appears_in_the_subscribers(self):
+        """Новая запись пользователя появляется в ленте тех, кто.
+
+        на него подписан и не появляется в ленте тех, кто не подписан
+        """
+        # подписанный пользватель
+        subscribe_user = User.objects.create_user(username='subscribe')
+        subscribed_client = Client()
+        subscribed_client.force_login(subscribe_user)
+
+        # неподписанный
+        unsubscribe_user = User.objects.create_user(username='unsubscribe')
+        unsubscribed_client = Client()
+        unsubscribed_client.force_login(unsubscribe_user)
+
+        # подпишемся на Пушкина
+        Follow.objects.create(
+            user=subscribe_user,
+            author=TestView.user_pshk
+        )
+
+        Post.objects.all().delete()
+
+        post = Post.objects.create(
+            text='Тестирование подписи',
+            author=TestView.user_pshk,
+            group=TestView.group1
+        )
+
+        response = subscribed_client.get(reverse('posts:follow_index'))
+        page = response.context.get('page_obj')
+        # проверим что наш пост попал
+        self.assertIn(post, page.object_list)
+        self.compare_posts(page.object_list[0], post)
+
+        response = unsubscribed_client.get(reverse('posts:follow_index'))
+        page = response.context.get('page_obj')
+        # проверим что наш пост не попал
+        self.assertNotIn(post, page.object_list)
+
+    def test_cache(self):
+        """Тестируем работу кэша."""
+        response_before = self.author_client.get(reverse('posts:index'))
+        TestView.post.delete()
+        response_after = self.author_client.get(reverse('posts:index'))
+        self.assertEqual(response_before.content, response_after.content)
+        cache.clear()
+        response_last = self.author_client.get(reverse('posts:index'))
+        self.assertNotEqual(response_after.content, response_last)
