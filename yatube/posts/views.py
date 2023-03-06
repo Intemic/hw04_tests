@@ -32,21 +32,9 @@ def profile(request: HttpRequest, username: str) -> HttpResponse:
     post_list = Post.objects.filter(
         author=user).prefetch_related('author', 'group').all()
 
-    print('following' + '\n')   
-    for user in request.user.following.all():
-        print(user)
+    following = Follow.objects.filter(
+        user=request.user).filter(author=user).exists()
 
-    print('follower' + '\n')   
-    for user in request.user.follower.all():
-        print(user)
-
-
-    # if request.user.following.filter(username=username).exists():
-    #     following = True
-    # print(username, '-' 'follower: ', user.follower.all(), 'following: ', user.following.all())    
-    # print(request.user, '-' 'follower: ', request.user.follower.all(), 'following: ', request.user.following.all())    
-   
-    following = False
     context = {
         'author': user,
         'page_obj': get_page_obj(request, post_list),
@@ -124,16 +112,13 @@ def add_comment(request: HttpRequest, post_id: int):
 
 @login_required
 def follow_index(request: HttpRequest):
-    author_list = get_list_or_404(User, follower=request.user)
-    post_list = Post.objects.select_related('author', 'group').filter(author)  
-    # информация о текущем пользователе доступна в переменной request.user
-    # ...
-    post_list = Post.objects.select_related('author', 'group').all()
+    author_list = [follow.author for follow in Follow.objects.filter(
+        user=request.user)
+    ]    
+    post_list = Post.objects.filter(author__in=author_list)
     context = {
         'page_obj': get_page_obj(request, post_list),
     }
-#    return render(request, 'posts/index.html', context)    
-#    context = {}
     return render(request, 'posts/follow.html', context)
 
 

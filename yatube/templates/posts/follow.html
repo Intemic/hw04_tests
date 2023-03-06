@@ -1,12 +1,9 @@
 {% extends "base.html" %}
-{% load cache %}
 {% block content %}
   <h1>Посты авторов</h1>
-  {% cache 20 index_page %}
-    {% for post in page_obj %}
-      {% include "includes/article.html"%}
-      {% if not forloop.last %}<hr>{% endif %}
-    {% endfor %} 
-  {% endcache %}
+  {% for post in page_obj %}
+    {% include "includes/article.html"%}
+    {% if not forloop.last %}<hr>{% endif %}
+  {% endfor %} 
   {% include "posts/includes/paginator.html" %}
 {% endblock %}
