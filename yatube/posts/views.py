@@ -7,6 +7,7 @@ from .forms import CommentForm, PostForm
 from .models import Comment, Follow, Group, Post, User
 from .utils import get_page_obj
 
+
 @cache_page(20)
 def index(request: HttpRequest) -> HttpResponse:
     post_list = Post.objects.select_related('author', 'group').all()
@@ -30,7 +31,10 @@ def profile(request: HttpRequest, username: str) -> HttpResponse:
     user = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(
         author=user).prefetch_related('author', 'group').all()
-    following = user.following.filter(user=request.user).exists()
+    if not request.user.is_anonymous:
+        following = user.following.filter(user=request.user).exists()
+    else:
+        following = False
 
     context = {
         'author': user,
@@ -123,7 +127,9 @@ def follow_index(request: HttpRequest):
 def profile_follow(request: HttpRequest, username: str):
     # Подписаться на автора
     author = get_object_or_404(User, username=username)
-    Follow.objects.create(user=request.user, author=author)
+    is_signed = request.user.follower.filter(author=author).exists()
+    if username != request.user.username and not is_signed:
+        Follow.objects.create(user=request.user, author=author)
     return redirect('posts:profile', username=username)
 
 

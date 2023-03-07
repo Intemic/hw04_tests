@@ -4,6 +4,7 @@ from django.urls import include, path
 from django.conf.urls.static import static
 
 handler404 = 'core.views.page_not_found'
+handler403 = 'core.views.csrf_failure'
 
 urlpatterns = [
     path('admin/', admin.site.urls),

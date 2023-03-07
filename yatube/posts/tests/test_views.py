@@ -94,6 +94,7 @@ class TestView(TestCase):
         self.assertEqual(group.description, group_ref.description)
 
     def setUp(self):
+        cache.clear()
         self.author_client = Client()
         self.author_client.force_login(self.user_pshk)
 
@@ -266,7 +267,7 @@ class TestView(TestCase):
 
         page_count_post = (
             (1, settings.NUMBER_OF_LINES_ON_PAGE),
-            (2, number_obj_on_secon_page)
+            (2, number_obj_on_secon_page)        
         )
 
         Post.objects.bulk_create(
@@ -285,7 +286,7 @@ class TestView(TestCase):
                     response = self.author_client.get(
                         url, [('page', page_n)]
                     )
-                    self.assertEqual(
+                    self.assertEqual(        
                         len(response.context['page_obj']),
                         count_post_in_page
                     )
@@ -324,7 +325,7 @@ class TestView(TestCase):
             'posts:profile',
             kwargs={'username': user_leo.username}
         )
-
+        
         # проверим что пост не попал на другую страницу
         response = self.author_client.get(url)
         page = response.context.get('page_obj')
@@ -343,7 +344,7 @@ class TestView(TestCase):
 
         url = reverse(
             'posts:post_detail',
-            kwargs={'post_id': self.post.pk}
+            kwargs={'post_id': self.post.pk}        
         )
 
         response = self.author_client.get(url)
@@ -487,8 +488,14 @@ class TestView(TestCase):
 
     def test_cache(self):
         """Тестируем работу кэша."""
+        post = Post.objects.create(
+            text='Пост 2',
+            author=TestView.user_pshk,
+            group=TestView.group1
+        )
+
         response_before = self.author_client.get(reverse('posts:index'))
-        TestView.post.delete()
+        post.delete()
         response_after = self.author_client.get(reverse('posts:index'))
         self.assertEqual(response_before.content, response_after.content)
         cache.clear()
