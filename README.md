@@ -1,3 +1,12 @@
-# hw04_tests
+## Данный проект представляет собой социальную сеть Yatube
 
-[![CI](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml)
+Технологии:
+  Django 2.2.16
+
+в данном проекте была задача познакомиться с методикой тестирования и научиться
+использвать Unittest в Django
+
+Реализовано покрытие тестами приложения posts: 
+  - протестированы модели приложения
+  - реализована проверка namespace и шаблонов
+  - реализована проверка views и form 
